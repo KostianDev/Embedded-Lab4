@@ -36,6 +36,10 @@ extern ADC_HandleTypeDef hadc1;
 
 /* USER CODE BEGIN Private defines */
 
+/* DMA buffer for ADC1 regular conversions (PA3/PA4/PA5):
+  index 0 -> IN3 (PA3), 1 -> IN4 (PA4), 2 -> IN5 (PA5) */
+extern volatile uint16_t adc_dma_buf[3];
+
 /* USER CODE END Private defines */
 
 void MX_ADC1_Init(void);

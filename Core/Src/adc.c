@@ -21,6 +21,8 @@
 #include "adc.h"
 
 /* USER CODE BEGIN 0 */
+/* DMA buffer (definition) - filled by DMA (half-word values) */
+volatile uint16_t adc_dma_buf[3] = {0,0,0};
 
 /* USER CODE END 0 */
 
