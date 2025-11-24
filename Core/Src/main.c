@@ -106,27 +106,41 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+  const uint32_t FILTER_N = 6;
+  uint32_t filtered[3] = {0,0,0};
+
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    /* Copy volatile DMA buffer to locals */
-    uint32_t a0 = adc_dma_buf[0];
-    uint32_t a1 = adc_dma_buf[1];
-    uint32_t a2 = adc_dma_buf[2];
+    
+    uint32_t s0 = adc_dma_buf[0];
+    uint32_t s1 = adc_dma_buf[1];
+    uint32_t s2 = adc_dma_buf[2];
 
-    /* Map 12-bit ADC (0..4095) to TIM4 period (0..Period) */
+    /* Apply simple integer IIR to smooth readings */
+    filtered[0] = (filtered[0] * (FILTER_N - 1) + s0) / FILTER_N;
+    filtered[1] = (filtered[1] * (FILTER_N - 1) + s1) / FILTER_N;
+    filtered[2] = (filtered[2] * (FILTER_N - 1) + s2) / FILTER_N;
+
     uint32_t period = htim4.Init.Period;
-    uint32_t pwm0 = (a0 * period) / 4095;
-    uint32_t pwm1 = (a1 * period) / 4095;
-    uint32_t pwm2 = (a2 * period) / 4095;
+    uint32_t pwm0 = (filtered[0] * period) / 4095;
+    uint32_t pwm1 = (filtered[1] * period) / 4095;
+    uint32_t pwm2 = (filtered[2] * period) / 4095;
+
+    /* Small deadzone to avoid visible flicker at very low values */
+    const uint32_t DEAD_THRESHOLD = 2; /* ADC units */
+    if (filtered[0] < DEAD_THRESHOLD) pwm0 = 0;
+    if (filtered[1] < DEAD_THRESHOLD) pwm1 = 0;
+    if (filtered[2] < DEAD_THRESHOLD) pwm2 = 0;
 
     __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, pwm0);
     __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, pwm1);
     __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, pwm2);
 
-    HAL_Delay(20);
+    HAL_Delay(10);
   }
   /* USER CODE END 3 */
 }
